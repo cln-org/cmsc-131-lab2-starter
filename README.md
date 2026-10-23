@@ -72,9 +72,14 @@ registers you preserve and why.
 
 `qsort_asm`
 
-`bsearch_asm`
+**`int bseach_asm(int *arr, int n, int key)`**
+* **Purpose:** Performs a recursive binary search for integer `key` within a sorted array `arr` of size `n`
+* **Return Value:** Returns the 0-based array index of `key` if found, or `-1` if `key` is absent (returned in `eax`).
 
-`gcd_asm`
+**`int gcd_asm(int a, int b)`**
+* **Purpose**: Computes the greatest common divisor as a signed 32-bit integer in `eax`
+* **Return Value:** Returns the greatest common divisor (in `eax`)
+* **Side Effect:** Updates the global exported variable `gcd_depth` in `.bss` with the maximum recursion depth reached during the call (where the initial call counts as 1).
 
 `sum_range_asm`
 
