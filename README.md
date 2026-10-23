@@ -70,6 +70,14 @@ this activity adds. Keep each part short. Update it when the plan changes.
 The four routines `bench.c` expects and what each one returns. Which
 registers you preserve and why.
 
+`qsort_asm`
+
+`bsearch_asm`
+
+`gcd_asm`
+
+`sum_range_asm`
+
 ### Solution architecture
 
 A stack frame diagram for one recursive call of `qsort_asm`, showing where
@@ -97,9 +105,9 @@ who owns it.
 
 | Week | Goal | Owner |
 |---|---|---|
-| 1 | | |
-| 2 | | |
-| 3 | | |
+| 1 | Interface and Plan | |
+| 2 | Sort and Search Working| Erine Lourdes Medalla, Ryona Cassandra Honrado |
+| 3 | sum_range_asm, tests, and all checks passed| Adrienne Nicole Tipon, Jhon Chriztopher Nice |
 | 4 | Defense | |
 
 ## Subsystem Ownership
@@ -110,9 +118,9 @@ share one. The commit history must agree with this table.
 
 | Subsystem | Owner |
 |---|---|
-| Sorting (`qsort_asm` and its partition) | |
-| Searching (`bsearch_asm`, `gcd_asm`) | |
-| Convention and measurement (`sum_range_asm`, the benchmarks) | |
+| Sorting (`qsort_asm` and its partition) | Erine Lourdes Medalla |
+| Searching (`bsearch_asm`, `gcd_asm`) | Ryona Cassandra Honrado |
+| Convention and measurement (`sum_range_asm`, the benchmarks) | Adrienne Nicole Tipon, Jhon Chriztopher Nice |
 
 ## Quirks and Issues
 
