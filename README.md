@@ -70,7 +70,10 @@ this activity adds. Keep each part short. Update it when the plan changes.
 The four routines `bench.c` expects and what each one returns. Which
 registers you preserve and why.
 
-`qsort_asm`
+**`qsort_asm(int *arr, int n)`**
+* **Purpose:** Recursively sorts the first n signed 32-bit integers of arr in place, in ascending order, comparing values in a register
+* **Return value:** None (void). The result is the rearranged array itself.
+* **Registers:** esi (the array frame), ebx (the pivot), edi(hi)
 
 **`int bsearch_asm(int *arr, int n, int key)`**
 * **Purpose:** Performs a recursive binary search for integer `key` within a sorted array `arr` of size `n`
