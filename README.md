@@ -72,7 +72,7 @@ registers you preserve and why.
 
 `qsort_asm`
 
-**`int bseach_asm(int *arr, int n, int key)`**
+**`int bsearch_asm(int *arr, int n, int key)`**
 * **Purpose:** Performs a recursive binary search for integer `key` within a sorted array `arr` of size `n`
 * **Return Value:** Returns the 0-based array index of `key` if found, or `-1` if `key` is absent (returned in `eax`).
 
