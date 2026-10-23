@@ -84,7 +84,11 @@ registers you preserve and why.
 * **Return Value:** Returns the greatest common divisor (in `eax`)
 * **Side Effect:** Updates the global exported variable `gcd_depth` in `.bss` with the maximum recursion depth reached during the call (where the initial call counts as 1).
 
-`sum_range_asm`
+**`int sum_range_asm(int lo, int hi)`**
+* **Purpose:** Returns the sum of integers from `lo` to `hi` inclusive. Calls `bench_callback` once per C call.
+* **Return Value:** The sum (in `eax`).
+* **Registers preserved:** `ebx`, `esi`, `edi`, `ebp` (callee-saved).
+* **Reentrancy:** Uses only registers and the stack (no `.data`/`.bss`). This ensures that if `bench_callback` triggers a second overlapping call, both calls keep independent state and return correct results.
 
 ### Solution architecture
 
