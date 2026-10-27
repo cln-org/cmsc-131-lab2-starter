@@ -73,7 +73,7 @@ registers you preserve and why.
 **`qsort_asm(int *arr, int n)`**
 * **Purpose:** Recursively sorts the first n signed 32-bit integers of arr in place, in ascending order, comparing values in a register
 * **Return value:** None (void). The result is the rearranged array itself.
-* **Registers:** esi (the array frame), ebx (the pivot), edi(hi)
+* **Registers:** esi (the array frame), ebx (the pivot), edi(hi), esp (stack pointer), ebp(frame pointer)
 
 **`int bsearch_asm(int *arr, int n, int key)`**
 * **Purpose:** Performs a recursive binary search for integer `key` within a sorted array `arr` of size `n`
@@ -91,6 +91,19 @@ registers you preserve and why.
 A stack frame diagram for one recursive call of `qsort_asm`, showing where
 the arguments, the return address, saved `ebp`, and the saved registers
 sit. Why `sum_range_asm` is reentrant.
+
+one call of qsort_inner(arr, lo, hi)
+
+higher addresses
+  [ebp+16]  hi              argument 3 
+  [ebp+12]  lo              argument 2
+  [ebp+8]   arr             argument 1 
+  [ebp+4]   return address  pushed by call
+  [ebp+0]   saved ebp         <- ebp points here
+  [ebp-4]   saved esi       
+  [ebp-8]   saved ebx       
+  [ebp-12]  saved edi         <- esp points here
+lower addresses
 
 ### Measurements
 
