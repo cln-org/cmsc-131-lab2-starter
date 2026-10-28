@@ -83,5 +83,53 @@ bsearch_inner:
 
         enter   0,0
         mov     eax, -1                 ; an absent key returns -1 (base case)
+        mov     ecx, [ebp+12]           ; lo in ecx             
+        mov     edx, [ebp+16]           ; hi in edx
+        cmp     ecx, edx
+        jg      .if_lo_greater          ; if lo > hi: return -1
+
+        mov     eax, edx                ; mov hi into eax
+        sub     eax, ecx                ; hi - lo
+        add     eax, ecx                ; lo + (hi - lo)
+        shr     eax, 1                  ; lo + (hi - lo) / 2
+        mov     edx, eax                ; mid in edx
+
+        mov     ecx, [ebp+20]           ; key
+        mov     eax, [ebp+8]            ; arr
+        mov     eax, [eax + edx * 4]    ; arr[mid]
+        cmp     eax, ecx
+        jl      .mid_less_than          ; if arr[mid] < key
+        jg      .mid_greater_than       ; if arr[mid] > key
+        
+        mov     eax, edx
+        leave
+        ret
+
+.if_lo_greater:
+        mov     eax, -1
+        leave
+        ret             
+
+.mid_less_than:                         ; bsearch(arr, mid + 1, hi, key)
+        push    dword[ebp+20]           ; key (pushing from right to left) 
+        push    dword[ebp+16]           ; hi
+        mov     eax, edx
+        add     eax, 1
+        push    eax
+        push    dword[ebp+8]            ; arr (pushing from right to left; top of stack)
+        call    bsearch_inner
+        add     esp, 16                 ; remove 4 args x 4 bytes
+        leave
+        ret
+
+.mid_greater_than:                      ; bsearch(arr, lo, mid - 1, key)
+        push    dword[ebp+20]           ; key (pushing from right to left) 
+        mov     eax, edx
+        sub     eax, 1
+        push    eax                     ; mid - 1
+        push    dword[ebp+16]           ; hi
+        push    dword[ebp+8]            ; arr (pushing from right to left; top of stack)
+        call    bsearch_inner
+        add     esp, 16                 ; remove 4 args x 4 bytes
         leave
         ret
