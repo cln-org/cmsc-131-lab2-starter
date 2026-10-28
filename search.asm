@@ -90,8 +90,8 @@ bsearch_inner:
 
         mov     eax, edx                ; mov hi into eax
         sub     eax, ecx                ; hi - lo
-        add     eax, ecx                ; lo + (hi - lo)
-        shr     eax, 1                  ; lo + (hi - lo) / 2
+        shr     eax, 1                  ; (hi - lo) / 2
+        add     eax, ecx                ; lo + (hi - lo) / 2
         mov     edx, eax                ; mid in edx
 
         mov     ecx, [ebp+20]           ; key
@@ -127,7 +127,7 @@ bsearch_inner:
         mov     eax, edx
         sub     eax, 1
         push    eax                     ; mid - 1
-        push    dword[ebp+16]           ; hi
+        push    dword[ebp+12]           ; lo
         push    dword[ebp+8]            ; arr (pushing from right to left; top of stack)
         call    bsearch_inner
         add     esp, 16                 ; remove 4 args x 4 bytes
