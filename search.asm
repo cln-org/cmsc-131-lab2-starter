@@ -47,10 +47,11 @@
 
 segment .text
         global  _bsearch_asm
-_bsearch_asm:
-        enter   0,0
-        pusha
 
+; int bsearch_asm(int *arr, int n, int key): cdecl, called from C
+; builds lo = 0 and hi = n - 1, then hands off to bsearch_inner
+; n = 0 gives hi = -1, so the base case returns -1 immediately
+_bsearch_asm:
         ;
         ; TODO: search.
         ;
@@ -65,7 +66,80 @@ _bsearch_asm:
         ; dividend that cannot be negative.
         ;
 
-        popa
-        mov     eax, 0
+        enter   0,0
+        mov     eax, [ebp+12]            ; eax = n
+        dec     eax                     ; eax = hi = n - 1
+        push    dword[ebp+16]           ; key (pushing from right to left) 
+        push    eax                     ; hi
+        push    dword 0                 ; lo = 0
+        push    dword [ebp+8]           ; arr (pushing from right to left; top of stack)
+        call    bsearch_inner
+        add     esp, 16                 ; remove 4 args x 4 bytes
+        leave
+        ret
+
+; bsearch_inner(arr, lo, hi, key): internal, recursive
+; convention: cdecl-style 
+; caller pushes right to left, calls, and removes the arguments with add esp, 16
+; frame after enter 0,0:
+;       [ebp+20] key
+;       [ebp+16] hi
+;       [ebp+12] lo
+;       [ebp+ 8] arr
+;       [ebp+ 4] return address
+;       [ebp+ 0] saved ebp
+; returns the index in eax, or -1 if the key is absent.
+; registers: uses only eax, ecx, edx (caller-saved), nothing to preserve
+bsearch_inner:
+        enter   0,0
+        mov     eax, -1                 ; an absent key returns -1 (base case)
+        mov     ecx, [ebp+12]           ; lo in ecx             
+        mov     edx, [ebp+16]           ; hi in edx
+        cmp     ecx, edx
+        jg      .if_lo_greater          ; if lo > hi: return -1
+
+        mov     eax, edx                ; mov hi into eax
+        sub     eax, ecx                ; hi - lo: never larger than the array, cannot overflow
+        shr     eax, 1                  ; (hi - lo) / 2 gives the same result as rhe signed division
+        add     eax, ecx                ; mid = lo + (hi - lo) / 2, over-flow-safe
+        mov     edx, eax                ; mid in edx
+
+        mov     ecx, [ebp+20]           ; key
+        mov     eax, [ebp+8]            ; arr
+        mov     eax, [eax + edx * 4]    ; arr[mid]
+        cmp     eax, ecx
+        jl      .mid_less_than          ; if arr[mid] < key
+        jg      .mid_greater_than       ; if arr[mid] > key
+        
+        mov     eax, edx
+        leave
+        ret
+
+.if_lo_greater:
+        mov     eax, -1
+        leave
+        ret             
+
+.mid_less_than:                         ; bsearch(arr, mid + 1, hi, key)
+        push    dword[ebp+20]           ; key (pushing from right to left) 
+        push    dword[ebp+16]           ; hi
+        mov     eax, edx
+        add     eax, 1
+        push    eax
+        push    dword[ebp+8]            ; arr (pushing from right to left; top of stack)
+        call    bsearch_inner
+        add     esp, 16                 ; remove 4 args x 4 bytes
+        leave
+        ret
+
+.mid_greater_than:                      ; bsearch(arr, lo, mid - 1, key)
+        push    dword[ebp+20]           ; key (pushing from right to left) 
+        mov     eax, edx
+        sub     eax, 1
+        push    eax                     ; mid - 1
+        push    dword[ebp+12]           ; lo
+        push    dword[ebp+8]            ; arr (pushing from right to left; top of stack)
+        call    bsearch_inner
+        add     esp, 16                 ; remove 4 args x 4 bytes
         leave
         ret
