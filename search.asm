@@ -47,6 +47,10 @@
 
 segment .text
         global  _bsearch_asm
+
+; int bsearch_asm(int *arr, int n, int key): cdecl, called from C
+; builds lo = 0 and hi = n - 1, then hands off to bsearch_inner
+; n = 0 gives hi = -1, so the base case returns -1 immediately
 _bsearch_asm:
         ;
         ; TODO: search.
@@ -74,13 +78,19 @@ _bsearch_asm:
         leave
         ret
 
+; bsearch_inner(arr, lo, hi, key): internal, recursive
+; convention: cdecl-style 
+; caller pushes right to left, calls, and removes the arguments with add esp, 16
+; frame after enter 0,0:
+;       [ebp+20] key
+;       [ebp+16] hi
+;       [ebp+12] lo
+;       [ebp+ 8] arr
+;       [ebp+ 4] return address
+;       [ebp+ 0] saved ebp
+; returns the index in eax, or -1 if the key is absent.
+; registers: uses only eax, ecx, edx (caller-saved), nothing to preserve
 bsearch_inner:
-;       bsearch(arr, lo, hi, key):
-;       mid = lo + (hi - lo) / 2
-;       if arr[mid] == key: return mid
-;       if arr[mid] < key:  return bsearch(arr, mid + 1, hi, key)
-;       else:               return bsearch(arr, lo, mid - 1, key)
-
         enter   0,0
         mov     eax, -1                 ; an absent key returns -1 (base case)
         mov     ecx, [ebp+12]           ; lo in ecx             
@@ -89,9 +99,9 @@ bsearch_inner:
         jg      .if_lo_greater          ; if lo > hi: return -1
 
         mov     eax, edx                ; mov hi into eax
-        sub     eax, ecx                ; hi - lo
-        shr     eax, 1                  ; (hi - lo) / 2
-        add     eax, ecx                ; lo + (hi - lo) / 2
+        sub     eax, ecx                ; hi - lo: never larger than the array, cannot overflow
+        shr     eax, 1                  ; (hi - lo) / 2 gives the same result as rhe signed division
+        add     eax, ecx                ; mid = lo + (hi - lo) / 2, over-flow-safe
         mov     edx, eax                ; mid in edx
 
         mov     ecx, [ebp+20]           ; key
