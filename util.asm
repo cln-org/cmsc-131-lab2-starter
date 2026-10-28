@@ -74,10 +74,9 @@ _gcd_depth      resd    1
 segment .text
         global  _gcd_asm
         extern  _bench_callback
-_gcd_asm:
-        enter   0,0
-        pusha
 
+; int gcd_asm(int a, int b): cdecl, called from C
+_gcd_asm:
         ;
         ; TODO: gcd. Count the calls. Reset gcd_depth at entry, then keep
         ; the deepest level reached, with the first call as level 1. Carry
@@ -86,10 +85,52 @@ _gcd_asm:
         ; returns, so a counter that returns to zero on exit prints 0.
         ;
 
-        popa
-        mov     eax, 0
+        enter   0,0
+        push    dword 1                 ; depth = 1 (first call)
+        push    dword [ebp+12]          ; b
+        push    dword [ebp+8]           ; a
+        call    gcd_inner
+        add     esp, 12                 ; remove 3 args x 4 bytes
         leave
         ret
+
+; gcd_inner(a, b, depth)   internal, recursive
+; frame after enter 0,0:
+;       [ebp+16] depth
+;       [ebp+12] b
+;       [ebp+ 8] a
+;       [ebp+ 4] return address
+;       [ebp+ 0] saved ebp
+; caller removes the 3 args (add esp, 12); returns gcd in eax
+; registers: uses only eax and edx (caller-saved), nothing to preserve
+gcd_inner:
+        enter   0,0
+        mov     eax, [ebp+12]           ; b
+        cmp     eax, 0
+        je      .base_case              ; if b == 0: return a     
+        mov     eax, [ebp+16]           ; depth
+        add     eax, 1                  ; depth + 1
+        push    eax
+
+        mov     eax, [ebp+8]            ; a
+        cdq                             ; sign-extend eax into edx:eax
+        mov     ecx, dword[ebp+12]      ; b
+        idiv    ecx                     ; a / b
+        push    edx                     ; remainder, result of a % b
+        push    dword[ebp+12]           ; b
+        call    gcd_inner
+        add     esp, 12                 ; remove 3 args x 4 bytes
+        leave
+        ret
+
+.base_case:
+        mov     eax, [ebp+16]           ; depth
+        mov     [_gcd_depth], eax       ; write depth in global
+        mov     eax, [ebp+8]            ; return a
+        leave
+        ret
+        
+        
 
         global  _sum_range_asm
 _sum_range_asm:
