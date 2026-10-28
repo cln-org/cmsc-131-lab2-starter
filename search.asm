@@ -48,9 +48,6 @@
 segment .text
         global  _bsearch_asm
 _bsearch_asm:
-        enter   0,0
-        pusha
-
         ;
         ; TODO: search.
         ;
@@ -65,7 +62,26 @@ _bsearch_asm:
         ; dividend that cannot be negative.
         ;
 
-        popa
-        mov     eax, 0
+        enter   0,0
+        mov     eax, [ebp+12]            ; eax = n
+        dec     eax                     ; eax = hi = n - 1
+        push    dword[ebp+16]           ; key (pushing from right to left) 
+        push    eax                     ; hi
+        push    dword 0                 ; lo = 0
+        push    dword [ebp+8]           ; arr (pushing from right to left; top of stack)
+        call    bsearch_inner
+        add     esp, 16                 ; remove 4 args x 4 bytes
+        leave
+        ret
+
+bsearch_inner:
+;       bsearch(arr, lo, hi, key):
+;       mid = lo + (hi - lo) / 2
+;       if arr[mid] == key: return mid
+;       if arr[mid] < key:  return bsearch(arr, mid + 1, hi, key)
+;       else:               return bsearch(arr, lo, mid - 1, key)
+
+        enter   0,0
+        mov     eax, -1                 ; an absent key returns -1 (base case)
         leave
         ret
