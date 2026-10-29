@@ -85,14 +85,15 @@ qsort_inner:
         cmp     ebx, edi
         jge     .done               ; signed: lo >= hi, nothing to sort
 
-        push    edi                 ; partition(arr, lo, hi)
-        push    ebx
-        push    esi
+                                    ; partition(arr, lo, hi)
+        push    edi                 ; hi      
+        push    ebx                 ; lo
+        push    esi                 ; arr
         call    partition
         add     esp, 12
         mov     [ebp-4], eax        ; p lives on the stack across the recursion
 
-        dec     eax                 ; left half: lo .. p-1
+        dec     eax                 ; left half: lo p-1
         push    eax
         push    ebx
         push    esi
@@ -100,7 +101,7 @@ qsort_inner:
         add     esp, 12
 
         mov     eax, [ebp-4]
-        inc     eax                 ; right half: p+1 .. hi
+        inc     eax                 ; right half: p+1 hi
         push    edi
         push    eax
         push    esi
@@ -119,24 +120,24 @@ partition:
         push    ebx
         push    esi
         push    edi
-        mov     esi, [ebp+8]
-        mov     edi, [ebp+16]
+        mov     esi, [ebp+8]        ; where the list starts
+        mov     edi, [ebp+16]       ; the last spot
         mov     edx, [esi+edi*4]    ; pivot = arr[hi]
-        mov     ebx, [ebp+12]
+        mov     ebx, [ebp+12]       ; first spot
         dec     ebx                 ; i = lo - 1
         mov     ecx, [ebp+12]       ; j = lo
 .loop:
-        cmp     ecx, edi
-        jge     .end                ; j runs lo .. hi-1
-        mov     eax, [esi+ecx*4]    ; eax = arr[j]
-        cmp     eax, edx
-        jg      .next               ; signed jump, so negatives sort right
-        inc     ebx                 ; i = i + 1
+        cmp     ecx, edi            ; checks if at the pivot
+        jge     .end                ; yes, stop - j runs lo  hi-1
+        mov     eax, [esi+ecx*4]    ; eax = arr[j] - current
+        cmp     eax, edx           
+        jg      .next               ; signed jump, so negatives sort right, is it bigger 
+        inc     ebx                 ; i = i + 1, smaller or equal
         xchg    eax, [esi+ebx*4]    ; eax = old arr[i], arr[i] = arr[j]
-        mov     [esi+ecx*4], eax    ; arr[j] = old arr[i]
+        mov     [esi+ecx*4], eax    ; arr[j] = old arr[i] , swpping
 .next:
-        inc     ecx
-        jmp     .loop
+        inc     ecx                 ; move on to next number
+        jmp     .loop                   
 .end:
         inc     ebx                 ; i + 1
         mov     eax, [esi+ebx*4]
