@@ -1,10 +1,7 @@
 ;
 ; util.asm - gcd_asm and sum_range_asm, both recursive, callable from C.
 ;
-; This is your starting point: it assembles and links as-is, so the build
-; works before you write any code. Right now gcd_asm returns 0 and
-; sum_range_asm returns 0, so the benchmark's --gcd and --reentrancy demos
-; fail. Your job is to replace both.
+; Implements recursive GCD and range-sum routines callable from C.
 ;
 ; The contracts, from bench.c:
 ;
@@ -77,15 +74,8 @@ segment .text
 
 ; int gcd_asm(int a, int b): cdecl, called from C
 _gcd_asm:
-        ;
-        ; TODO: gcd. Count the calls. Reset gcd_depth at entry, then keep
-        ; the deepest level reached, with the first call as level 1. Carry
-        ; the current level in a register or count it in the global, but
-        ; leave the peak behind. bench.c reads gcd_depth after the call
-        ; returns, so a counter that returns to zero on exit prints 0.
-        ;
-
         enter   0,0
+        ; Start counting calls at one, then pass b and a to the worker.
         push    dword 1                 ; depth = 1 (first call)
         push    dword [ebp+12]          ; b
         push    dword [ebp+8]           ; a
@@ -107,7 +97,9 @@ gcd_inner:
         enter   0,0
         mov     eax, [ebp+12]           ; b
         cmp     eax, 0
-        je      .base_case              ; if b == 0: return a     
+        je      .base_case              ; if b == 0: return a
+
+        ; Continue with b and the remainder of a divided by b; add one call.
         mov     eax, [ebp+16]           ; depth
         add     eax, 1                  ; depth + 1
         push    eax
@@ -124,6 +116,7 @@ gcd_inner:
         ret
 
 .base_case:
+        ; Save how many calls it took to reach b = 0.
         mov     eax, [ebp+16]           ; depth
         mov     [_gcd_depth], eax       ; write depth in global
         mov     eax, [ebp+8]            ; return a
@@ -135,17 +128,43 @@ gcd_inner:
         global  _sum_range_asm
 _sum_range_asm:
         enter   0,0
-        pusha
+        push    ebx
+        push    esi
+        push    edi
 
-        ;
-        ; TODO: sum_range. Call bench_callback once, then recurse on
-        ; (lo + 1, hi) and add lo. The base case lo > hi is 0. Put the
-        ; recursion in a second routine that does not call bench_callback.
-        ; Keep every intermediate on the stack. A global counter or
-        ; accumulator here is what breaks reentrancy.
-        ;
+        ; The callback can start another sum before this call begins recursing.
+        call    _bench_callback
 
-        popa
-        mov     eax, 0
+        push    dword [ebp+12]          ; hi
+        push    dword [ebp+8]           ; lo
+        call    sum_range_inner
+        add     esp, 8
+
+        pop     edi
+        pop     esi
+        pop     ebx
+        leave
+        ret
+
+; Each call keeps its lo and hi on the stack, so nested calls keep their own values.
+sum_range_inner:
+        enter   0,0
+        mov     eax, [ebp+8]            ; lo
+        cmp     eax, [ebp+12]           ; lo > hi?
+        jg      .empty
+
+        ; Add lo to the sum of the rest of the range.
+        inc     eax
+        push    dword [ebp+12]          ; hi
+        push    eax                     ; lo + 1
+        call    sum_range_inner
+        add     esp, 8
+        add     eax, [ebp+8]            ; add this frame's lo
+        leave
+        ret
+
+.empty:
+        ; An empty range has a sum of zero.
+        xor     eax, eax
         leave
         ret

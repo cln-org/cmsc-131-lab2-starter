@@ -156,8 +156,8 @@ did about it.
 
 ### Known issues
 
-- 
+- `sum_range_asm` makes one recursive call per integer in the range, so very large ranges can exhaust the stack. It returns a signed 32-bit result; sums outside that range overflow and may not equal the mathematical sum.
 
 ### Quirks
 
-- 
+- `sum_range_asm` calls `bench_callback` once at the public C entry. Its recursive helper does not call the callback, so the nested call in the reentrancy demonstration represents a second C call rather than an extra callback for each recursive step.
