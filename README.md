@@ -117,11 +117,11 @@ and its cause. One improvement and its estimated effect.
 
 | File | Ratio |
 |---|---|
-| `random1000.txt` | |
-| `sorted1000.txt` | |
-| `reverse1000.txt` | |
-| `duplicates.txt` | |
-| `identical.txt` | |
+| `random1000.txt` | 0.80x |
+| `sorted1000.txt` | 124.08x |
+| `reverse1000.txt` | 68.11x |
+| `duplicates.txt` | 32.10x |
+| `identical.txt` | 61.97x |
 
 ### Timeline
 
