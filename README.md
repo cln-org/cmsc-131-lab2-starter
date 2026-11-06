@@ -123,6 +123,10 @@ and its cause. One improvement and its estimated effect.
 | `duplicates.txt` | 32.10x |
 | `identical.txt` | 61.97x |
 
+Worst case: `sorted1000.txt`. Our Lomuto partition uses the last element as the pivot, so on sorted input the pivot is always the largest and every partition removes only one element. That makes the recursion about n levels deep.
+
+Improvement: We could use a median-of-three pivot by taking the median of `arr[lo]`, `arr[mid]`, and `arr[hi]` and swapping it into `hi` before partitioning. This should balance the splits on sorted and reverse input and bring those ratios down to within a few times of random.
+
 ### Timeline
 
 One line per week. Name the subsystem each week finishes and the member
