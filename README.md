@@ -117,11 +117,15 @@ and its cause. One improvement and its estimated effect.
 
 | File | Ratio |
 |---|---|
-| `random1000.txt` | |
-| `sorted1000.txt` | |
-| `reverse1000.txt` | |
-| `duplicates.txt` | |
-| `identical.txt` | |
+| `random1000.txt` | 0.80x |
+| `sorted1000.txt` | 124.08x |
+| `reverse1000.txt` | 68.11x |
+| `duplicates.txt` | 32.10x |
+| `identical.txt` | 61.97x |
+
+Worst case: `sorted1000.txt`. Our Lomuto partition uses the last element as the pivot, so on sorted input the pivot is always the largest and every partition removes only one element. That makes the recursion about n levels deep.
+
+Improvement: We could use a median-of-three pivot by taking the median of `arr[lo]`, `arr[mid]`, and `arr[hi]` and swapping it into `hi` before partitioning. This should balance the splits on sorted and reverse input and bring those ratios down to within a few times of random.
 
 ### Timeline
 
@@ -156,8 +160,8 @@ did about it.
 
 ### Known issues
 
-- 
+- `sum_range_asm` makes one recursive call per integer in the range, so very large ranges can exhaust the stack. It returns a signed 32-bit result; sums outside that range overflow and may not equal the mathematical sum.
 
 ### Quirks
 
-- 
+- `sum_range_asm` calls `bench_callback` once at the public C entry. Its recursive helper does not call the callback, so the nested call in the reentrancy demonstration represents a second C call rather than an extra callback for each recursive step.
