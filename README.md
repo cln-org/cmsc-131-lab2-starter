@@ -160,8 +160,12 @@ did about it.
 
 ### Known issues
 
+- `qsort_asm` uses the last element as the pivot, so sorted, reverse-sorted, and all-identical input give lopsided partitions and O(n²) time instead of O(n log n). `sorted1000.txt` shows this as a much larger ratio than `random1000.txt`.
 - `sum_range_asm` makes one recursive call per integer in the range, so very large ranges can exhaust the stack. It returns a signed 32-bit result; sums outside that range overflow and may not equal the mathematical sum.
 
 ### Quirks
 
+
+- `_qsort_asm` sets `eax` to 0 on return even though `qsort_asm` is declared `void`, so the caller never uses the value.
+- `partition` swaps with `xchg eax, [esi+ebx*4]`. An `xchg` with a memory operand is implicitly locked on x86, so it is slower than two plain `mov`s, and it also runs when `i == j`, where the swap does nothing. The sort is still correct.
 - `sum_range_asm` calls `bench_callback` once at the public C entry. Its recursive helper does not call the callback, so the nested call in the reentrancy demonstration represents a second C call rather than an extra callback for each recursive step.
