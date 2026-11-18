@@ -160,12 +160,16 @@ did about it.
 
 ### Known issues
 
+- `bsearch_asm` computes midpoints via lo + (hi - lo) / 2 to prevent 32-bit signed integer overflow and uses signed comparisons (jl/jg) for negative key support. Because signed bounds can decrement hi below zero, explicit base-case guards (lo > hi and n <= 0) are required to safely return -1 on missing keys without out-of-bounds memory access.
 - `qsort_asm` uses the last element as the pivot, so sorted, reverse-sorted, and all-identical input give lopsided partitions and O(n²) time instead of O(n log n). `sorted1000.txt` shows this as a much larger ratio than `random1000.txt`.
 - `sum_range_asm` makes one recursive call per integer in the range, so very large ranges can exhaust the stack. It returns a signed 32-bit result; sums outside that range overflow and may not equal the mathematical sum.
+- `_gcd_asm` mutates the shared global variable gcd_depth in .bss to record recursion depth during execution, which makes the routine non-reentrant because overlapping or concurrent calls overwrite the global depth value.
+
 
 ### Quirks
 
-
+- `bsearch_asm` implements the overflow-safe midpoint formula lo + (hi - lo) / 2 to prevent 32-bit signed integer overflow when lo + hi exceeds 2^31 - 1 (requiring > 2^30 elements), though the 32-bit test harness cannot allocate the 4+ GiB array of 32-bit integers needed to trigger that condition in practice.
 - `_qsort_asm` sets `eax` to 0 on return even though `qsort_asm` is declared `void`, so the caller never uses the value.
 - `partition` swaps with `xchg eax, [esi+ebx*4]`. An `xchg` with a memory operand is implicitly locked on x86, so it is slower than two plain `mov`s, and it also runs when `i == j`, where the swap does nothing. The sort is still correct.
 - `sum_range_asm` calls `bench_callback` once at the public C entry. Its recursive helper does not call the callback, so the nested call in the reentrancy demonstration represents a second C call rather than an extra callback for each recursive step.
+- `_gcd_asm` counts the top-level call as depth 1 and increments on each recursive step, meaning immediate base cases like gcd(0, 0) or gcd(a, 0) return immediately while setting gcd_depth to 1.
